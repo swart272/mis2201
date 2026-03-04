@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Logan Swartout - Game | Website</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <!-- ==================== NAVIGATION ==================== -->
+    <nav class="navbar">
+        <div class="container">
+            <div class="logo"><a href="index.html">Logan Swartout</a></div>
+            <ul class="nav-menu">
+                <li><a href="index.html">Home</a></li>
+                <li><a href="about.html">About Me</a></li>
+                <li><a href="resume.html">Resume</a></li>
+                <li><a href="discover-umd.html">Discover UMD</a></li>
+                <li><a href="game.html" class="active">Play my Game!</a></li>
+            </ul>
+            <div class="hamburger">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </div>
+    </nav>
+
+    <!-- ==================== GAME SECTION ==================== -->
+    <div id="gameSection">
+    <h2>Not Fast, Not Furious</h2>
+    <h3>Use arrow keys to move.</h3>
+    <h4>Can you beat my High Score of 35?</h4>
+    <div id="score">Score: 0</div>
+    <div id="gameContainer">
+        <div id="player"></div>
+        <div id="gameOver">GAME OVER</div>
+    </div>
+    <button id="restartBtn">Start</button>
+</div>
+
+    <!-- ==================== GAME SCRIPT ==================== -->
+<audio id="gameAudio" src="sounds/v09025g40000d3pvg8nog65tji3ug2ng.wav" loop></audio>
+<audio id="hitSound" src="sounds/237375__squareal__car-crash.wav"></audio>
+
+<script>
+const player = document.getElementById("player");
+const gameContainer = document.getElementById("gameContainer");
+const scoreEl = document.getElementById("score");
+const gameOverEl = document.getElementById("gameOver");
+const restartBtn = document.getElementById("restartBtn");
+
+let playerX = 180;
+let playerY = 340;
+const playerSpeed = 15;
+
+let obstacles = [];
+let obstacleSpeed = 2;
+let obstacleInterval;
+let score = 0;
+let gameRunning = false;
+
+const gameAudio = document.getElementById("gameAudio");
+const hitSound = document.getElementById("hitSound");
+
+// Move player
+document.addEventListener("keydown", (e) => {
+    if (!gameRunning) return;
+    if (e.key === "ArrowLeft") playerX = Math.max(0, playerX - playerSpeed);
+    if (e.key === "ArrowRight") playerX = Math.min(gameContainer.offsetWidth - 40, playerX + playerSpeed);
+    player.style.left = playerX + "px";
+});
+
+// Spawn obstacle
+function spawnObstacle() {
+    const obstacle = document.createElement("div");
+    obstacle.classList.add("obstacle");
+    obstacle.style.left = Math.floor(Math.random() * (gameContainer.offsetWidth - 40)) + "px";
+    obstacle.style.top = "0px";
+    gameContainer.appendChild(obstacle);
+    obstacles.push(obstacle);
+}
+
+// Game loop
+function updateGame() {
+    if (!gameRunning) return;
+
+    obstacles.forEach((obs, index) => {
+        let y = parseFloat(obs.style.top);
+        y += obstacleSpeed;
+        obs.style.top = y + "px";
+
+        // Collision detection
+        if (
+            y + obs.offsetHeight > playerY &&
+            y < playerY + player.offsetHeight &&
+            parseFloat(obs.style.left) + obs.offsetWidth > playerX &&
+            parseFloat(obs.style.left) < playerX + player.offsetWidth
+        ) {
+            hitSound.play();
+            endGame();
+        }
+
+        // Remove offscreen obstacle
+        if (y > gameContainer.offsetHeight) {
+            obs.remove();
+            obstacles.splice(index, 1);
+            score++;
+            scoreEl.textContent = "Score: " + score;
+
+            if (score % 1 === 0) obstacleSpeed += 0.2;
+
+            // Spawn next obstacle after a short delay (e.g., 1s)
+            setTimeout(spawnObstacle, 0);
+        }
+    });
+
+    requestAnimationFrame(updateGame);
+}
+
+// Start game
+function startGame() {
+    gameRunning = true;
+    gameOverEl.style.display = "none";
+    score = 0;
+    obstacleSpeed = 2;
+    obstacles = [];
+    playerX = 180;
+    player.style.left = playerX + "px";
+
+    // Start audio after user click
+    gameAudio.play().catch(() => console.log("Audio blocked until user interaction"));
+
+    // Spawn the first obstacle immediately
+    spawnObstacle();
+
+    // Start the game loop
+    requestAnimationFrame(updateGame);
+}
+
+// End game
+function endGame() {
+    gameRunning = false;
+    gameOverEl.style.display = "block";
+    gameAudio.pause();
+    obstacles.forEach(obs => obs.remove());
+    obstacles = [];
+}
+
+// Only start game when user clicks button
+restartBtn.addEventListener("click", () => {
+    startGame();
+});
+</script>
+
+     <footer>
+        <div class="container">
+            <!-- ACTION REQUIRED: Replace [YOUR NAME] -->
+            <p>&copy; 2026 Logan Swartout. MIS 2201 - Spring 2026</p>
+            <p>University of Minnesota Duluth</p>
+            <!-- OPTIONAL: Add social media links, contact email, etc. -->
+        </div>
+    </footer>
+</body>
+</html>
